@@ -346,78 +346,204 @@
             animation: spin .7s linear infinite;
         }
 
-        /* ─────────────── Typography tweaks ─────────────── */
-        h1, h2, h3, h4, h5, h6 { font-weight: 700; color: var(--gray-900); letter-spacing: -0.01em; }
+        /* ─────────────── Desktop Layout (Sidebar) ─────────────── */
+        @media (min-width: 768px) {
+            .app-layout {
+                flex-direction: row;
+                height: 100vh;
+                overflow: hidden;
+            }
+            .app-header {
+                display: none; /* Hide top header on desktop if sidebar has logo, or keep it. Let's keep a simplified layout: sidebar on left, content on right */
+            }
+            .bottom-nav {
+                display: none !important;
+            }
+            .desktop-sidebar {
+                display: flex !important;
+                flex-direction: column;
+                width: 260px;
+                background: var(--bg-card);
+                border-right: 1px solid var(--gray-100);
+                height: 100vh;
+                flex-shrink: 0;
+            }
+            .app-content {
+                flex: 1;
+                height: 100vh;
+                overflow-y: auto;
+                padding-bottom: 24px;
+            }
+            .page-container {
+                max-width: 1000px;
+                padding: 32px 40px;
+            }
+        }
+        
+        .desktop-sidebar {
+            display: none; /* Hidden on mobile */
+        }
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        .sidebar-menu {
+            padding: 16px 12px;
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            text-decoration: none;
+            color: var(--gray-600);
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+        }
+        .sidebar-item:hover {
+            background: var(--gray-50);
+            color: var(--gray-900);
+        }
+        .sidebar-item.active {
+            background: var(--primary-50);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .sidebar-item .nav-icon {
+            font-size: 1.25rem;
+        }
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--gray-100);
+        }
+
     </style>
 
     @stack('styles')
 </head>
 <body>
 <div class="app-layout">
-    <!-- Top Header -->
-    <header class="app-header">
-        <a href="{{ Auth::check() && Auth::user()->hasRole(['admin','superadmin']) ? route('admin.dashboard') : '/' }}" class="logo">
-            <div class="logo-icon"><i class="ph ph-fingerprint"></i></div>
-            <div>
-                <div class="logo-text">Absensi<span>RB</span></div>
-            </div>
-        </a>
+    <!-- Desktop Sidebar -->
+    @if(Auth::check() && Auth::user()->hasRole(['admin', 'superadmin']))
+    <aside class="desktop-sidebar">
+        <div class="sidebar-header">
+            <a href="{{ route('admin.dashboard') }}" class="logo">
+                <div style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                    <div class="logo-icon" style="width: 32px; height: 32px; background: var(--primary-50); color: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;"><i class="ph ph-fingerprint"></i></div>
+                    <div class="logo-text" style="font-size: 1.2rem; font-weight: 700; color: var(--gray-900);">Absensi<span style="color: var(--primary);">RB</span></div>
+                </div>
+            </a>
+        </div>
         
-        @auth
-        <div class="header-user">
-            <div style="text-align: right;">
-                <div class="user-name">{{ Auth::user()->name }}</div>
-                <div class="user-role">{{ ucfirst(Auth::user()->getRoleNames()->first() ?? '-') }}</div>
+        <div class="sidebar-menu">
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--gray-400); font-weight: 700; margin: 16px 0 8px 16px; letter-spacing: 0.5px;">Menu Utama</div>
+            <a href="{{ route('admin.dashboard') }}" class="sidebar-item {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                <i class="ph ph-squares-four nav-icon"></i>
+                <span>Beranda</span>
+            </a>
+            <a href="{{ route('admin.karyawan.index') }}" class="sidebar-item {{ request()->routeIs('admin.karyawan.*') ? 'active' : '' }}">
+                <i class="ph ph-users nav-icon"></i>
+                <span>Pegawai</span>
+            </a>
+            <a href="{{ route('admin.reports.index') }}" class="sidebar-item {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                <i class="ph ph-file-text nav-icon"></i>
+                <span>Laporan</span>
+            </a>
+            <a href="{{ route('admin.settings.index') }}" class="sidebar-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                <i class="ph ph-gear nav-icon"></i>
+                <span>Setelan Sistem</span>
+            </a>
+            
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--gray-400); font-weight: 700; margin: 24px 0 8px 16px; letter-spacing: 0.5px;">Akun</div>
+            <a href="{{ route('admin.profile.index') }}" class="sidebar-item {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
+                <i class="ph ph-user-circle nav-icon"></i>
+                <span>Profil & Password</span>
+            </a>
+        </div>
+        
+        <div class="sidebar-footer">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 0 8px;">
+                <div style="width: 36px; height: 36px; background: var(--gray-100); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gray-600);">
+                    <i class="ph ph-user"></i>
+                </div>
+                <div style="overflow: hidden;">
+                    <div style="font-weight: 600; font-size: 0.85rem; color: var(--gray-800); white-space: nowrap; text-overflow: ellipsis;">{{ Auth::user()->name }}</div>
+                    <div style="font-size: 0.75rem; color: var(--gray-500);">{{ ucfirst(Auth::user()->getRoleNames()->first() ?? '-') }}</div>
+                </div>
             </div>
             <form method="POST" action="{{ route('logout') }}" style="margin:0">
                 @csrf
-                <button type="submit" class="btn btn-outline" style="padding:6px 12px; font-size:0.8rem; border-radius: var(--radius-sm);">
+                <button type="submit" class="btn btn-outline btn-full" style="padding:8px; font-size:0.85rem; border-radius: var(--radius-sm); border-color: var(--gray-200); color: var(--gray-600);">
                     <i class="ph ph-sign-out"></i> Keluar
                 </button>
             </form>
         </div>
-        @else
-        <div class="header-user">
-            <a href="{{ route('login') }}" style="color:var(--gray-400);text-decoration:none;font-size:0.8rem;padding:8px; display:flex; align-items:center; gap:6px; font-weight:500;">
-                <i class="ph ph-lock-key" style="font-size:1.1rem;"></i> Admin
-            </a>
-        </div>
-        @endauth
-    </header>
+    </aside>
+    @endif
 
-    <!-- Main Content -->
-    <main class="app-content">
-        @if(session('success'))
-            <div style="padding:16px 20px 0;">
-                <div class="alert alert-success">
-                    <i class="ph ph-check-circle"></i>
-                    <div>{{ session('success') }}</div>
+    <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+        <!-- Top Header (Mobile Only) -->
+        <header class="app-header">
+            <a href="{{ Auth::check() && Auth::user()->hasRole(['admin','superadmin']) ? route('admin.dashboard') : '/' }}" class="logo">
+                <div class="logo-icon"><i class="ph ph-fingerprint"></i></div>
+                <div>
+                    <div class="logo-text">Absensi<span>RB</span></div>
                 </div>
+            </a>
+            
+            @auth
+            <div class="header-user">
+                <a href="{{ route('admin.profile.index') }}" style="color:var(--gray-600); margin-right: 12px;"><i class="ph ph-user-circle" style="font-size: 1.5rem;"></i></a>
             </div>
-        @endif
-        @if(session('error'))
-            <div style="padding:16px 20px 0;">
-                <div class="alert alert-danger">
-                    <i class="ph ph-warning-circle"></i>
-                    <div>{{ session('error') }}</div>
-                </div>
+            @else
+            <div class="header-user">
+                <a href="{{ route('login') }}" style="color:var(--gray-400);text-decoration:none;font-size:0.8rem;padding:8px; display:flex; align-items:center; gap:6px; font-weight:500;">
+                    <i class="ph ph-lock-key" style="font-size:1.1rem;"></i> Admin
+                </a>
             </div>
-        @endif
-        @if($errors->any())
-            <div style="padding:16px 20px 0;">
-                <div class="alert alert-danger">
-                    <i class="ph ph-warning-circle"></i>
-                    <div>
-                        @foreach($errors->all() as $error)
-                            <div>{{ $error }}</div>
-                        @endforeach
+            @endauth
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-content">
+            @if(session('success'))
+                <div style="padding:16px 20px 0;">
+                    <div class="alert alert-success">
+                        <i class="ph ph-check-circle"></i>
+                        <div>{{ session('success') }}</div>
                     </div>
                 </div>
-            </div>
-        @endif
+            @endif
+            @if(session('error'))
+                <div style="padding:16px 20px 0;">
+                    <div class="alert alert-danger">
+                        <i class="ph ph-warning-circle"></i>
+                        <div>{{ session('error') }}</div>
+                    </div>
+                </div>
+            @endif
+            @if($errors->any())
+                <div style="padding:16px 20px 0;">
+                    <div class="alert alert-danger">
+                        <i class="ph ph-warning-circle"></i>
+                        <div>
+                            @foreach($errors->all() as $error)
+                                <div>{{ $error }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
 
-        @yield('content')
-    </main>
+            @yield('content')
+        </main>
+    </div>
 
     <!-- Bottom Navigation (Admin, mobile) -->
     @if(Auth::check() && Auth::user()->hasRole(['admin', 'superadmin']))

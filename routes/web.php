@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\OfficeLocationController;
 use App\Http\Controllers\Admin\SystemSettingController;
 use App\Http\Controllers\Admin\LeaveRequestController as AdminLeaveController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboard;
 use App\Http\Controllers\Employee\AttendanceController;
 use App\Http\Controllers\Employee\AttendanceHistoryController;
@@ -85,4 +86,8 @@ Route::middleware(['auth', 'employee.status', 'role:admin|superadmin'])->prefix(
     Route::get('/laporan', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/laporan/export-excel', [ReportController::class, 'exportExcel'])->name('reports.excel');
     Route::get('/laporan/export-pdf', [ReportController::class, 'exportPdf'])->name('reports.pdf');
+
+    // Profile
+    Route::get('/profil', [ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profil/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 });
