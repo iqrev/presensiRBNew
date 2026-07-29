@@ -33,6 +33,10 @@ Route::middleware('auth')->group(function () {
 
     // Protected photo access (private storage)
     Route::get('/photos/{path}', [PhotoController::class, 'show'])->name('photos.show');
+
+    // Push Subscription Routes
+    Route::post('/push/subscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'subscribe'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'unsubscribe'])->name('push.unsubscribe');
 });
 
 // ─────────────────────────────────────────────
@@ -47,14 +51,14 @@ Route::post('/absensi/check-out', [AttendanceController::class, 'checkOut'])->na
 // ─────────────────────────────────────────────
 // Employee Routes (Disabled for Kiosk Mode MVP)
 // ─────────────────────────────────────────────
-// Route::middleware(['auth', 'employee.status', 'consent', 'role:karyawan'])->prefix('')->group(function () {
-//     Route::get('/dashboard', [EmployeeDashboard::class, 'index'])->name('employee.dashboard');
-//     Route::get('/riwayat', [AttendanceHistoryController::class, 'index'])->name('attendance.history');
-//     Route::get('/izin', [LeaveRequestController::class, 'index'])->name('leave.index');
-//     Route::get('/izin/buat', [LeaveRequestController::class, 'create'])->name('leave.create');
-//     Route::post('/izin', [LeaveRequestController::class, 'store'])->name('leave.store');
-//     Route::get('/izin/{leaveRequest}', [LeaveRequestController::class, 'show'])->name('leave.show');
-// });
+Route::middleware(['auth', 'employee.status', 'consent', 'role:karyawan'])->prefix('')->group(function () {
+    Route::get('/dashboard', [EmployeeDashboard::class, 'index'])->name('employee.dashboard');
+    Route::get('/riwayat', [AttendanceHistoryController::class, 'index'])->name('attendance.history');
+    Route::get('/izin', [LeaveRequestController::class, 'index'])->name('leave.index');
+    Route::get('/izin/buat', [LeaveRequestController::class, 'create'])->name('leave.create');
+    Route::post('/izin', [LeaveRequestController::class, 'store'])->name('leave.store');
+    Route::get('/izin/{leaveRequest}', [LeaveRequestController::class, 'show'])->name('leave.show');
+});
 
 // ─────────────────────────────────────────────
 // Admin / HR Routes

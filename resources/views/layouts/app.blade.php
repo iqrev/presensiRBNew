@@ -21,8 +21,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Alpine.js -->
+    <!-- Alpine.js & SweetAlert2 -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         /* ─────────────── Design Tokens ─────────────── */
@@ -512,35 +513,6 @@
 
         <!-- Main Content -->
         <main class="app-content">
-            @if(session('success'))
-                <div style="padding:16px 20px 0;">
-                    <div class="alert alert-success">
-                        <i class="ph ph-check-circle"></i>
-                        <div>{{ session('success') }}</div>
-                    </div>
-                </div>
-            @endif
-            @if(session('error'))
-                <div style="padding:16px 20px 0;">
-                    <div class="alert alert-danger">
-                        <i class="ph ph-warning-circle"></i>
-                        <div>{{ session('error') }}</div>
-                    </div>
-                </div>
-            @endif
-            @if($errors->any())
-                <div style="padding:16px 20px 0;">
-                    <div class="alert alert-danger">
-                        <i class="ph ph-warning-circle"></i>
-                        <div>
-                            @foreach($errors->all() as $error)
-                                <div>{{ $error }}</div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-            @endif
-
             @yield('content')
         </main>
     </div>
@@ -566,6 +538,13 @@
         </a>
     </nav>
     @endif
+    
+    <!-- Floating Push Subscribe Button -->
+    @auth
+    <button id="enable-push-btn" onclick="subscribeToPush()" class="btn btn-primary" style="display:none; position:fixed; bottom: 80px; right: 20px; border-radius: 50px; padding: 10px 16px; box-shadow: var(--shadow-lg); z-index: 99;">
+        <i class="ph ph-bell-ringing" style="font-size: 1.2rem; margin-right: 6px;"></i> Aktifkan Notifikasi
+    </button>
+    @endauth
 </div>
 
 <script>
@@ -574,6 +553,125 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
 }
+
+// SweetAlert2 Global Configuration
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 4000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('success'))
+        Toast.fire({
+            icon: 'success',
+            title: "{!! session('success') !!}"
+        });
+    @endif
+
+    @if(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Terjadi Kesalahan',
+            text: "{!! session('error') !!}",
+            confirmButtonColor: '#2563EB'
+        });
+    @endif
+
+    @if($errors->any())
+        Swal.fire({
+            icon: 'error',
+            title: 'Data Tidak Valid',
+            html: `
+                <ul style="text-align: left; margin: 0; padding-left: 20px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            `,
+            confirmButtonColor: '#2563EB'
+        });
+    @endif
+});
+
+// ─────────────────────────────────────────────
+// Web Push Notifications Logic
+// ─────────────────────────────────────────────
+function initWebPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return;
+    }
+
+    navigator.serviceWorker.ready.then(registration => {
+        registration.pushManager.getSubscription().then(subscription => {
+            const pushBtn = document.getElementById('enable-push-btn');
+            if (pushBtn) {
+                if (subscription) {
+                    pushBtn.style.display = 'none'; // Already subscribed
+                } else {
+                    pushBtn.style.display = 'flex'; // Show subscribe button
+                }
+            }
+        });
+    });
+}
+
+function subscribeToPush() {
+    navigator.serviceWorker.ready.then(registration => {
+        const vapidPublicKey = "{{ config('webpush.vapid.public_key') }}";
+        if(!vapidPublicKey) {
+            console.error('VAPID public key not found');
+            return;
+        }
+        
+        const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+        registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey
+        }).then(subscription => {
+            // Send subscription to server
+            fetch('{{ route("push.subscribe") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(subscription)
+            }).then(response => {
+                if (response.ok) {
+                    document.getElementById('enable-push-btn').style.display = 'none';
+                    Toast.fire({icon: 'success', title: 'Notifikasi berhasil diaktifkan!'});
+                }
+            }).catch(err => console.error('Subscription error', err));
+        }).catch(err => {
+            if (Notification.permission === 'denied') {
+                Swal.fire('Izin Ditolak', 'Silakan izinkan notifikasi melalui pengaturan browser Anda.', 'warning');
+            } else {
+                console.error('Failed to subscribe', err);
+            }
+        });
+    });
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+window.addEventListener('load', initWebPush);
 </script>
 
 @stack('scripts')
