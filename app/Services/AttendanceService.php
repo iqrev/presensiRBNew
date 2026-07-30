@@ -8,7 +8,6 @@ use App\Models\AttendanceFailureLog;
 use App\Models\FaceReference;
 use App\Models\SystemSetting;
 use App\Models\User;
-use App\Services\FaceRecognition\FacePlusPlusService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 

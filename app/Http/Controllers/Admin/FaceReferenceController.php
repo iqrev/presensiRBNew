@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\FaceReference;
 use App\Models\User;
 use App\Services\ImageCompressionService;
-use App\Services\FaceRecognition\FacePlusPlusService;
 use Illuminate\Http\Request;
 
 class FaceReferenceController extends Controller
