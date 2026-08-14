@@ -13,7 +13,6 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'consent'         => \App\Http\Middleware\EnsureBiometricConsent::class,
             'employee.status' => \App\Http\Middleware\CheckEmployeeStatus::class,
             'role'            => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission'      => \Spatie\Permission\Middleware\PermissionMiddleware::class,

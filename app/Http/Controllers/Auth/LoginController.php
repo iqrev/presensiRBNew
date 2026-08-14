@@ -72,20 +72,7 @@ class LoginController extends Controller
         return redirect()->route('login')->with('success', 'Anda berhasil logout.');
     }
 
-    public function showConsentForm()
-    {
-        return view('auth.consent');
-    }
 
-    public function storeConsent(Request $request)
-    {
-        $request->validate([
-            'agree' => 'required|accepted',
-        ]);
-
-        Auth::user()->update(['biometric_consent_at' => now()]);
-        return redirect()->route('employee.dashboard')->with('success', 'Terima kasih atas persetujuan Anda.');
-    }
 
     private function redirectBasedOnRole(User $user, bool $returnUrl = false): mixed
     {

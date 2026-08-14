@@ -14,12 +14,12 @@
     <div class="card" style="margin-bottom:16px;">
         <div class="card-body">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.875rem;">
-                <div><div class="text-xs text-muted">Email</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->email }}</div></div>
+                <div><div class="text-xs text-muted">Email</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->email ?? '-' }}</div></div>
+                <div><div class="text-xs text-muted">Username</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->username ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">NIK</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->nik ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">Jabatan</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->jabatan ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">Departemen</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->department ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">No. HP</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->phone ?? '-' }}</div></div>
-                <div><div class="text-xs text-muted">Consent Biometrik</div><div style="font-weight:600;margin-top:2px;">{!! $karyawan->biometric_consent_at ? $karyawan->biometric_consent_at->format('d M Y') : '<i class="ph ph-x"></i> Belum' !!}</div></div>
             </div>
             <div style="display:flex;gap:8px;margin-top:16px;">
                 <a href="{{ route('admin.karyawan.edit', $karyawan) }}" class="btn btn-primary" style="flex:1;justify-content:center;"><i class="ph ph-pencil-simple"></i> Edit</a>

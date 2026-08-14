@@ -27,10 +27,6 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Consent Routes
-    Route::get('/consent', [LoginController::class, 'showConsentForm'])->name('consent.show');
-    Route::post('/consent', [LoginController::class, 'storeConsent'])->name('consent.store');
-
     // Protected photo access (private storage)
     Route::get('/photos/{path}', [PhotoController::class, 'show'])->name('photos.show');
 
@@ -51,7 +47,7 @@ Route::post('/absensi/check-out', [AttendanceController::class, 'checkOut'])->na
 // ─────────────────────────────────────────────
 // Employee Routes (Disabled for Kiosk Mode MVP)
 // ─────────────────────────────────────────────
-Route::middleware(['auth', 'employee.status', 'consent', 'role:karyawan'])->prefix('')->group(function () {
+Route::middleware(['auth', 'employee.status', 'role:karyawan'])->prefix('')->group(function () {
     Route::get('/dashboard', [EmployeeDashboard::class, 'index'])->name('employee.dashboard');
     Route::get('/riwayat', [AttendanceHistoryController::class, 'index'])->name('attendance.history');
     Route::get('/izin', [LeaveRequestController::class, 'index'])->name('leave.index');
