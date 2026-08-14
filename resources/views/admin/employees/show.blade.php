@@ -19,7 +19,7 @@
                 <div><div class="text-xs text-muted">Jabatan</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->jabatan ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">Departemen</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->department ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">No. HP</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->phone ?? '-' }}</div></div>
-                <div><div class="text-xs text-muted">Consent Biometrik</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->biometric_consent_at ? $karyawan->biometric_consent_at->format('d M Y') : '<i class="ph ph-x"></i> Belum' }}</div></div>
+                <div><div class="text-xs text-muted">Consent Biometrik</div><div style="font-weight:600;margin-top:2px;">{!! $karyawan->biometric_consent_at ? $karyawan->biometric_consent_at->format('d M Y') : '<i class="ph ph-x"></i> Belum' !!}</div></div>
             </div>
             <div style="display:flex;gap:8px;margin-top:16px;">
                 <a href="{{ route('admin.karyawan.edit', $karyawan) }}" class="btn btn-primary" style="flex:1;justify-content:center;"><i class="ph ph-pencil-simple"></i> Edit</a>
@@ -41,7 +41,7 @@
                     @foreach($karyawan->attendances as $att)
                     <tr>
                         <td>{{ $att->attendance_time->format('d M') }}</td>
-                        <td>{{ $att->type === 'check_in' ? '<i class="ph ph-arrow-up-right"></i> Masuk' : '<i class="ph ph-arrow-down-left"></i> Pulang' }}</td>
+                        <td>{!! $att->type === 'check_in' ? '<i class="ph ph-arrow-up-right"></i> Masuk' : '<i class="ph ph-arrow-down-left"></i> Pulang' !!}</td>
                         <td style="font-weight:700;">{{ $att->attendance_time->format('H:i') }}</td>
                         <td>{{ round($att->distance_meter) }} m</td>
                         <td><span class="badge badge-{{ $att->status_color }}">{{ $att->status_label }}</span></td>
