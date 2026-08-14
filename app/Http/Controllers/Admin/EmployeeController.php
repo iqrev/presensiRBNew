@@ -32,6 +32,9 @@ class EmployeeController extends Controller
             'phone'      => 'nullable|string|max:20',
         ]);
 
+        if (empty($data['email'])) $data['email'] = null;
+        if (empty($data['nik'])) $data['nik'] = null;
+
         $user = User::create([
             ...$data,
             'password' => Hash::make(\Illuminate\Support\Str::random(16)),
@@ -67,6 +70,9 @@ class EmployeeController extends Controller
             'phone'      => 'nullable|string|max:20',
             'status'     => 'required|in:aktif,nonaktif',
         ]);
+
+        if (empty($data['email'])) $data['email'] = null;
+        if (empty($data['nik'])) $data['nik'] = null;
 
         $karyawan->update($data);
 
