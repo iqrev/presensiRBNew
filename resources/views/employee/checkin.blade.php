@@ -2,13 +2,13 @@
 @section('title', 'Mesin Presensi')
 
 @section('content')
-<div class="page-container" x-data="attendance()" style="max-width:600px;margin:0 auto; padding-top:2rem;">
-    <div class="page-header" style="text-align:center;padding:16px 0 24px;">
-        <div class="page-title" style="font-size:1.75rem; justify-content:center;">
+<div class="page-container" x-data="attendance()" style="max-width:600px; margin:0 auto; padding: 12px 16px; display: flex; flex-direction: column; height: calc(100dvh - 65px);">
+    <div class="page-header" style="text-align:center; padding: 0 0 12px; flex-shrink: 0;">
+        <div class="page-title" style="font-size:1.5rem; justify-content:center;">
             <i class="ph ph-camera" style="color:var(--primary);"></i> Mesin Presensi
         </div>
-        <div class="page-subtitle" style="font-size:1rem;margin-top:4px;">{{ now()->translatedFormat('l, d F Y') }}</div>
-        <div style="font-size:4rem;font-weight:800;color:var(--primary);margin-top:8px;font-variant-numeric: tabular-nums; letter-spacing: -0.02em;" x-text="currentTime"></div>
+        <div class="page-subtitle" style="font-size:0.9rem; margin-top:2px;">{{ now()->translatedFormat('l, d F Y') }}</div>
+        <div style="font-size:3rem; font-weight:800; color:var(--primary); margin-top:4px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1;" x-text="currentTime"></div>
     </div>
 
     <!-- Result Display -->
@@ -32,33 +32,33 @@
 
     <!-- Camera Section -->
     <template x-if="!result">
-    <div class="card" style="margin-bottom:24px; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);">
-        <div class="card-header" style="display:flex;justify-content:center;gap:12px;padding:20px 24px; background: var(--gray-50); border-bottom: 1px solid var(--gray-100);">
-            <button @click="activeType='check_in'; error=null;" :class="activeType==='check_in' ? 'btn btn-primary' : 'btn btn-secondary'" style="flex:1;font-size:1.05rem;">
+    <div class="card" style="margin-bottom:0; flex: 1; display: flex; flex-direction: column; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); overflow: hidden;">
+        <div class="card-header" style="display:flex; justify-content:center; gap:12px; padding:12px 16px; background: var(--gray-50); border-bottom: 1px solid var(--gray-100); flex-shrink: 0;">
+            <button @click="activeType='check_in'; error=null;" :class="activeType==='check_in' ? 'btn btn-primary' : 'btn btn-secondary'" style="flex:1; font-size:1rem; padding: 10px;">
                 <i class="ph ph-sign-in"></i> Masuk
             </button>
-            <button @click="activeType='check_out'; error=null;" :class="activeType==='check_out' ? 'btn btn-primary' : 'btn btn-secondary'" style="flex:1;font-size:1.05rem;">
+            <button @click="activeType='check_out'; error=null;" :class="activeType==='check_out' ? 'btn btn-primary' : 'btn btn-secondary'" style="flex:1; font-size:1rem; padding: 10px;">
                 <i class="ph ph-sign-out"></i> Pulang
             </button>
         </div>
         
-        <div class="card-body" style="padding:32px 24px;">
+        <div class="card-body" style="padding:16px; flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
 
             <!-- Step: Ready -->
             <template x-if="step === 'ready'">
-            <div style="text-align:center;">
-                <div style="font-size:5rem;margin-bottom:20px; color:var(--gray-300);">
+            <div style="text-align:center; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+                <div style="font-size:4rem; margin-bottom:12px; color:var(--gray-300);">
                     <i class="ph ph-user-focus"></i>
                 </div>
-                <h3 style="margin-bottom:12px;font-size:1.3rem; color: var(--gray-900);" x-text="activeType === 'check_in' ? 'Siap Check In?' : 'Siap Pulang?'"></h3>
-                <p style="color:var(--gray-500);font-size:0.95rem;margin-bottom:32px; line-height: 1.6;">
+                <h3 style="margin-bottom:8px; font-size:1.2rem; color: var(--gray-900);" x-text="activeType === 'check_in' ? 'Siap Check In?' : 'Siap Pulang?'"></h3>
+                <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:24px; line-height: 1.5; padding: 0 12px;">
                     Sistem akan mendeteksi wajah secara otomatis. Pastikan Anda berada di lokasi kantor dan pencahayaan cukup.
                 </p>
-                <button @click="start()" class="btn btn-primary btn-full btn-lg" style="font-size:1.1rem;padding:16px;">
+                <button @click="start()" class="btn btn-primary btn-full btn-lg" style="font-size:1.05rem; padding:14px; flex-shrink: 0;">
                     <i class="ph ph-camera"></i> Mulai Kamera
                 </button>
                 <template x-if="error">
-                    <div class="alert alert-danger" style="margin-top:20px;text-align:left;">
+                    <div class="alert alert-danger" style="margin-top:16px; text-align:left;">
                         <i class="ph ph-warning-circle"></i>
                         <span x-text="error"></span>
                     </div>
@@ -68,27 +68,27 @@
 
             <!-- Step: Camera Live -->
             <template x-if="step === 'camera'">
-            <div style="text-align:center;">
-                <div style="position:relative;border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;background:#000;aspect-ratio:3/4;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
-                    <video x-ref="video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);" id="camera-video"></video>
+            <div style="text-align:center; display: flex; flex-direction: column; height: 100%;">
+                <div style="position:relative; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:16px; background:#000; flex: 1; box-shadow:0 4px 20px rgba(0,0,0,0.1);">
+                    <video x-ref="video" autoplay playsinline muted style="position: absolute; top: 0; left: 0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1);" id="camera-video"></video>
 
                     <!-- Face guide overlay -->
-                    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-                        <div style="width:65%;aspect-ratio:3/4;border:3px solid rgba(37,99,235,.7);border-radius:50%;box-shadow:0 0 0 9999px rgba(0,0,0,.4);"></div>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none;">
+                        <div style="width:70%; max-width:250px; aspect-ratio:3/4; border:3px solid rgba(37,99,235,.7); border-radius:50%; box-shadow:0 0 0 9999px rgba(0,0,0,.4);"></div>
                     </div>
 
                     <!-- Liveness instruction -->
-                    <div style="position:absolute;bottom:24px;left:0;right:0;text-align:center;">
-                        <div style="background:rgba(15,23,42,.85);backdrop-filter:blur(12px);color:white;padding:12px 24px;border-radius:100px;display:inline-block;font-size:0.95rem;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.2);">
+                    <div style="position:absolute; bottom:16px; left:0; right:0; text-align:center; padding: 0 16px;">
+                        <div style="background:rgba(15,23,42,.85); backdrop-filter:blur(12px); color:white; padding:10px 20px; border-radius:100px; display:inline-block; font-size:0.85rem; font-weight:600; box-shadow:0 4px 12px rgba(0,0,0,.2);">
                             <span x-html="livenessInstruction"></span>
                         </div>
                     </div>
 
                     <!-- GPS Status -->
-                    <div style="position:absolute;top:20px;right:20px;">
-                        <div :style="gpsCoords ? 'background:rgba(37,99,235,.9)' : 'background:rgba(245,158,11,.9)'" style="backdrop-filter:blur(8px);color:white;padding:8px 14px;border-radius:100px;font-size:0.8rem;font-weight:600; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,.15);">
+                    <div style="position:absolute; top:12px; right:12px;">
+                        <div :style="gpsCoords ? 'background:rgba(37,99,235,.9)' : 'background:rgba(245,158,11,.9)'" style="backdrop-filter:blur(8px); color:white; padding:6px 12px; border-radius:100px; font-size:0.75rem; font-weight:600; display:flex; align-items:center; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,.15);">
                             <template x-if="!gpsCoords">
-                                <span class="animate-pulse" style="display:flex; align-items:center; gap:4px;"><i class="ph ph-spinner-gap ph-spin"></i> Mencari GPS...</span>
+                                <span class="animate-pulse" style="display:flex; align-items:center; gap:4px;"><i class="ph ph-spinner-gap ph-spin"></i> GPS...</span>
                             </template>
                             <template x-if="gpsCoords">
                                 <span style="display:flex; align-items:center; gap:4px;"><i class="ph ph-map-pin"></i> GPS OK</span>
@@ -97,51 +97,57 @@
                     </div>
                 </div>
 
-                <!-- Liveness progress -->
-                <div style="margin-bottom:24px;">
-                    <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:var(--gray-600);margin-bottom:8px;font-weight:600;">
-                        <span>Verifikasi Liveness</span>
-                        <span x-text="livenessStep + '/3'"></span>
+                <div style="flex-shrink: 0;">
+                    <!-- Liveness progress -->
+                    <div style="margin-bottom:12px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--gray-600); margin-bottom:6px; font-weight:600;">
+                            <span>Verifikasi</span>
+                            <span x-text="livenessStep + '/3'"></span>
+                        </div>
+                        <div style="height:6px; background:var(--gray-200); border-radius:3px; overflow:hidden;">
+                            <div :style="'width:' + (livenessStep/3*100) + '%'" style="height:100%; background:var(--primary); border-radius:3px; transition:width .5s ease;"></div>
+                        </div>
                     </div>
-                    <div style="height:8px;background:var(--gray-200);border-radius:4px;overflow:hidden;">
-                        <div :style="'width:' + (livenessStep/3*100) + '%'" style="height:100%;background:var(--primary);border-radius:4px;transition:width .5s ease;"></div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <template x-if="!gpsCoords || livenessStep < 3">
+                            <button type="button" class="btn btn-primary btn-full" disabled style="padding: 12px;">
+                                <template x-if="!gpsCoords">
+                                    <span class="animate-pulse">Tunggu GPS...</span>
+                                </template>
+                                <template x-if="gpsCoords && livenessStep < 3">
+                                    <span class="animate-pulse">Ikuti instruksi...</span>
+                                </template>
+                            </button>
+                        </template>
+                        <template x-if="gpsCoords && livenessStep === 3">
+                            <button @click="captureManual()" type="button" class="btn btn-primary btn-full" style="padding: 12px;">
+                                <span><i class="ph ph-camera"></i> Foto</span>
+                            </button>
+                        </template>
+                        <button @click="stopCamera()" class="btn btn-secondary" style="padding: 12px; min-width: 80px;">Batal</button>
                     </div>
                 </div>
-
-                <template x-if="!gpsCoords || livenessStep < 3">
-                    <button type="button" class="btn btn-primary btn-full btn-lg" disabled>
-                        <template x-if="!gpsCoords">
-                            <span class="animate-pulse">Menunggu lokasi GPS...</span>
-                        </template>
-                        <template x-if="gpsCoords && livenessStep < 3">
-                            <span class="animate-pulse">Ikuti instruksi liveness...</span>
-                        </template>
-                    </button>
-                </template>
-                <template x-if="gpsCoords && livenessStep === 3">
-                    <button @click="captureManual()" type="button" class="btn btn-primary btn-full btn-lg">
-                        <span><i class="ph ph-camera"></i> Ambil Foto</span>
-                    </button>
-                </template>
-                <button @click="stopCamera()" class="btn btn-secondary btn-full btn-lg" style="margin-top:12px;">Batal</button>
             </div>
             </template>
 
             <!-- Step: Preview -->
             <template x-if="step === 'preview'">
-            <div style="text-align:center;">
-                <div style="border-radius:var(--radius-lg);overflow:hidden;margin-bottom:24px;aspect-ratio:3/4;background:#000;box-shadow:0 4px 20px rgba(0,0,0,0.1);">
-                    <img :src="capturedDataUrl" style="width:100%;height:100%;object-fit:cover;transform:scaleX(-1);" alt="Foto presensi">
+            <div style="text-align:center; display: flex; flex-direction: column; height: 100%;">
+                <div style="border-radius:var(--radius-lg); overflow:hidden; margin-bottom:16px; flex: 1; background:#000; box-shadow:0 4px 20px rgba(0,0,0,0.1); position: relative;">
+                    <img :src="capturedDataUrl" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1);" alt="Foto presensi">
                 </div>
-                <button @click="submit()" class="btn btn-primary btn-full btn-lg" :disabled="submitting" style="font-size:1.1rem;padding:16px;">
-                    <template x-if="submitting">
-                        <div class="spinner"></div>
-                    </template>
-                    <template x-if="!submitting">
-                        <span><i class="ph ph-paper-plane-right"></i> Verifikasi & Kirim</span>
-                    </template>
-                </button>
-                <button @click="retake()" class="btn btn-secondary btn-full btn-lg" style="margin-top:12px;" :disabled="submitting"><i class="ph ph-arrow-counter-clockwise"></i> Foto Ulang</button>
+                <div style="display: flex; gap: 8px; flex-shrink: 0;">
+                    <button @click="submit()" class="btn btn-primary btn-full" :disabled="submitting" style="padding:14px; font-size:1.05rem;">
+                        <template x-if="submitting">
+                            <div class="spinner"></div>
+                        </template>
+                        <template x-if="!submitting">
+                            <span><i class="ph ph-paper-plane-right"></i> Kirim</span>
+                        </template>
+                    </button>
+                    <button @click="retake()" class="btn btn-secondary" style="padding:14px;" :disabled="submitting"><i class="ph ph-arrow-counter-clockwise"></i> Ulang</button>
+                </div>
             </div>
             </template>
         </div>
