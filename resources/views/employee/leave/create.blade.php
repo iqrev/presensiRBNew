@@ -7,13 +7,13 @@
         <div class="page-title" style="margin-top:8px;">📝 Buat Pengajuan Izin</div>
     </div>
 
-    <div class="card">
+    <div class="card" x-data="{ type: '{{ old('type') }}' }">
         <div class="card-body">
             <form method="POST" action="{{ route('leave.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="form-group">
                     <label class="form-label">Jenis <span>*</span></label>
-                    <select name="type" class="form-control" required>
+                    <select name="type" class="form-control" x-model="type" required>
                         <option value="">Pilih jenis...</option>
                         <option value="izin"  {{ old('type') === 'izin'  ? 'selected' : '' }}>Izin</option>
                         <option value="sakit" {{ old('type') === 'sakit' ? 'selected' : '' }}>Sakit</option>
@@ -36,15 +36,21 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Alasan <span>*</span></label>
-                    <textarea name="reason" class="form-control" rows="4" placeholder="Jelaskan alasan pengajuan..." required maxlength="1000">{{ old('reason') }}</textarea>
+                    <label class="form-label">
+                        Alasan 
+                        <span x-show="type === 'izin' || type === 'cuti'">*</span>
+                    </label>
+                    <textarea name="reason" class="form-control" rows="4" placeholder="Jelaskan alasan pengajuan..." :required="type === 'izin' || type === 'cuti'" maxlength="1000">{{ old('reason') }}</textarea>
                     @error('reason')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Lampiran (Surat Dokter / Surat Keterangan)</label>
-                    <input type="file" name="attachment" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
-                    <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;">Format: JPG, PNG, atau PDF. Maks 5MB.</div>
+                    <label class="form-label">
+                        Lampiran (Surat Dokter / Surat Keterangan)
+                        <span x-show="type === 'sakit'">*</span>
+                    </label>
+                    <input type="file" name="attachment" class="form-control" accept=".jpg,.jpeg,.png,.pdf" :required="type === 'sakit'">
+                    <div style="font-size:0.75rem;color:var(--gray-400);margin-top:4px;" x-text="type === 'sakit' ? 'Surat dokter wajib diunggah (JPG, PNG, PDF, Maks 5MB).' : 'Format: JPG, PNG, atau PDF. Maks 5MB.'"></div>
                     @error('attachment')<div class="form-error">{{ $message }}</div>@enderror
                 </div>
 
