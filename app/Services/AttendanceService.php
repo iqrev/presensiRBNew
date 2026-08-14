@@ -77,6 +77,14 @@ class AttendanceService
         $finalPath = "attendance-photos/{$user->id}/" . basename($compressed['path']);
         Storage::move($compressed['path'], $finalPath);
 
+        // Add watermark
+        $this->imageService->addWatermark(storage_path("app/{$finalPath}"), [
+            'Nama'   => $user->name,
+            'Waktu'  => now()->format('d M Y H:i:s'),
+            'Lokasi' => "{$lat}, {$lng}",
+            'Tipe'   => $type === 'check_in' ? 'Check-In' : 'Check-Out',
+        ]);
+
         // 6. Geofencing check
         $geoResult = $this->geofencingService->checkLocation($lat, $lng);
 

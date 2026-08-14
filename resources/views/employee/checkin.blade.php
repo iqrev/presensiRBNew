@@ -108,17 +108,21 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn btn-primary btn-full btn-lg" disabled>
-                    <template x-if="!gpsCoords">
-                        <span class="animate-pulse">Menunggu lokasi GPS...</span>
-                    </template>
-                    <template x-if="gpsCoords && livenessStep < 3">
-                        <span class="animate-pulse">Ikuti instruksi liveness...</span>
-                    </template>
-                    <template x-if="gpsCoords && livenessStep === 3">
-                        <span class="animate-pulse"><i class="ph ph-camera"></i> Mengambil foto otomatis...</span>
-                    </template>
-                </button>
+                <template x-if="!gpsCoords || livenessStep < 3">
+                    <button type="button" class="btn btn-primary btn-full btn-lg" disabled>
+                        <template x-if="!gpsCoords">
+                            <span class="animate-pulse">Menunggu lokasi GPS...</span>
+                        </template>
+                        <template x-if="gpsCoords && livenessStep < 3">
+                            <span class="animate-pulse">Ikuti instruksi liveness...</span>
+                        </template>
+                    </button>
+                </template>
+                <template x-if="gpsCoords && livenessStep === 3">
+                    <button @click="captureManual()" type="button" class="btn btn-primary btn-full btn-lg">
+                        <span><i class="ph ph-camera"></i> Ambil Foto</span>
+                    </button>
+                </template>
                 <button @click="stopCamera()" class="btn btn-secondary btn-full btn-lg" style="margin-top:12px;">Batal</button>
             </div>
             </template>
@@ -266,15 +270,13 @@ function attendance() {
                     this.livenessStep = 3;
                     
                     if (this.gpsCoords) {
-                        this.livenessInstruction = '<i class="ph ph-camera" style="color:#60A5FA; margin-right:6px;"></i> Mengambil foto otomatis...';
-                        this.captureManual();
+                        this.livenessInstruction = '<i class="ph ph-check-circle" style="color:#34D399; margin-right:6px;"></i> Verifikasi selesai, silakan ambil foto.';
                     } else {
                         this.livenessInstruction = '<i class="ph ph-spinner" style="color:#F59E0B; margin-right:6px;"></i> Menunggu lokasi GPS...';
                         const checkGps = setInterval(() => {
                             if (this.gpsCoords) {
                                 clearInterval(checkGps);
-                                this.livenessInstruction = '<i class="ph ph-camera" style="color:#60A5FA; margin-right:6px;"></i> Mengambil foto otomatis...';
-                                this.captureManual();
+                                this.livenessInstruction = '<i class="ph ph-check-circle" style="color:#34D399; margin-right:6px;"></i> Verifikasi selesai, silakan ambil foto.';
                             } else if (this.step !== 'camera') {
                                 clearInterval(checkGps); // user cancelled
                             }
