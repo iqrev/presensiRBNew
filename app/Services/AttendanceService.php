@@ -73,6 +73,17 @@ class AttendanceService
             return ['success' => false, 'reason' => "Halo {$user->name}, Anda sudah melakukan check-out hari ini."];
         }
 
+        // Validate early checkout
+        if ($type === 'check_out') {
+            $jamPulang = SystemSetting::get('jam_pulang', '17:00');
+            $nowTime = now()->format('H:i');
+
+            if ($nowTime < $jamPulang) {
+                $this->imageService->delete($compressed['path']);
+                return ['success' => false, 'reason' => "Halo {$user->name}, Anda belum bisa check-out. Jadwal pulang adalah pukul {$jamPulang}."];
+            }
+        }
+
         // 5. Move temp photo to user folder
         $finalPath = "attendance-photos/{$user->id}/" . basename($compressed['path']);
         Storage::move($compressed['path'], $finalPath);
