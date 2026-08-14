@@ -19,10 +19,15 @@
                     <input type="text" name="name" class="form-control" value="{{ old('name', $karyawan->name) }}" required>
                     @error('name')<div class="form-error" style="font-size:0.8rem; color:var(--danger); margin-top:4px;">{{ $message }}</div>@enderror
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
                     <div class="form-group">
-                        <label class="form-label">Email <span style="color:var(--danger);">*</span></label>
-                        <input type="email" name="email" class="form-control" value="{{ old('email', $karyawan->email) }}" required>
+                        <label class="form-label">Username <span style="color:var(--danger);">*</span></label>
+                        <input type="text" name="username" class="form-control" value="{{ old('username', $karyawan->username) }}" required>
+                        @error('username')<div class="form-error" style="font-size:0.8rem; color:var(--danger); margin-top:4px;">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email (Opsional)</label>
+                        <input type="email" name="email" class="form-control" value="{{ old('email', $karyawan->email) }}">
                         @error('email')<div class="form-error" style="font-size:0.8rem; color:var(--danger); margin-top:4px;">{{ $message }}</div>@enderror
                     </div>
                     <div class="form-group">
