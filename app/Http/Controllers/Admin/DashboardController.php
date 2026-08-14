@@ -52,10 +52,17 @@ class DashboardController extends Controller
             ->where('status', 'manual_request')
             ->latest()->limit(5)->get();
 
+        // Changelog
+        $changelogPath = base_path('CHANGELOG.md');
+        $changelogHtml = '';
+        if (file_exists($changelogPath)) {
+            $changelogHtml = \Illuminate\Support\Str::markdown(file_get_contents($changelogPath));
+        }
+
         return view('admin.dashboard', compact(
             'totalKaryawan', 'todayStats', 'pendingLeaves',
             'failureLogs', 'todayAttendances', 'manualRequests',
-            'jamMasuk'
+            'jamMasuk', 'changelogHtml'
         ));
     }
 }

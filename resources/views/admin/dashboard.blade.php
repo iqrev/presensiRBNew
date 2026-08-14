@@ -232,5 +232,26 @@
             @endif
         </div>
     </div>
+
+    <!-- Update Log / Changelog Section -->
+    @if(!empty($changelogHtml))
+    <div class="card" style="margin-top:24px; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,0.03); border:1px solid var(--gray-100);">
+        <div class="card-header" style="padding:20px; border-bottom:1px solid var(--gray-100); display:flex; align-items:center; gap:8px; font-weight:600; color:var(--gray-800);">
+            <i class="ph ph-file-text" style="color:var(--primary); font-size:1.2rem;"></i> Log Pembaruan (Update Log)
+        </div>
+        <div class="card-body" style="padding:24px; color:var(--gray-700); line-height:1.6; overflow-x:auto;">
+            <style>
+                .changelog-content h1, .changelog-content h2, .changelog-content h3 { color: var(--gray-900); margin-top: 1.5em; margin-bottom: 0.5em; }
+                .changelog-content h1:first-child, .changelog-content h2:first-child { margin-top: 0; }
+                .changelog-content ul { padding-left: 20px; margin-bottom: 1em; }
+                .changelog-content li { margin-bottom: 0.25em; }
+                .changelog-content p { margin-bottom: 1em; }
+            </style>
+            <div class="changelog-content">
+                {!! $changelogHtml !!}
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
 @endsection
