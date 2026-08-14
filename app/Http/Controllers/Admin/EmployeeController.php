@@ -25,9 +25,8 @@ class EmployeeController extends Controller
     {
         $data = $request->validate([
             'name'       => 'required|string|max:255',
-            'username'   => 'required|string|unique:users,username|max:100',
             'email'      => 'nullable|email|unique:users,email',
-            'nik'        => 'nullable|string|unique:users,nik|max:20',
+            'nik'        => 'required_without:email|nullable|string|unique:users,nik|max:20',
             'jabatan'    => 'nullable|string|max:100',
             'department' => 'nullable|string|max:100',
             'phone'      => 'nullable|string|max:20',
@@ -61,9 +60,8 @@ class EmployeeController extends Controller
     {
         $data = $request->validate([
             'name'       => 'required|string|max:255',
-            'username'   => 'required|string|unique:users,username,' . $karyawan->id . '|max:100',
             'email'      => 'nullable|email|unique:users,email,' . $karyawan->id,
-            'nik'        => 'nullable|string|unique:users,nik,' . $karyawan->id . '|max:20',
+            'nik'        => 'required_without:email|nullable|string|unique:users,nik,' . $karyawan->id . '|max:20',
             'jabatan'    => 'nullable|string|max:100',
             'department' => 'nullable|string|max:100',
             'phone'      => 'nullable|string|max:20',

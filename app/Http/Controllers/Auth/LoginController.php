@@ -37,16 +37,16 @@ class LoginController extends Controller
         $login    = $request->input('login');
         $password = $request->input('password');
 
-        // Coba login dengan email atau username
+        // Coba login dengan email atau NIK
         $credentials = filter_var($login, FILTER_VALIDATE_EMAIL)
             ? ['email' => $login, 'password' => $password]
-            : ['username' => $login, 'password' => $password];
+            : ['nik' => $login, 'password' => $password];
 
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey($request));
 
             throw ValidationException::withMessages([
-                'login' => 'Email/Username atau password salah.',
+                'login' => 'Email/NIK atau password salah.',
             ]);
         }
 

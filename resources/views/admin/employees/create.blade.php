@@ -19,19 +19,14 @@
                     <input type="text" name="name" class="form-control" value="{{ old('name') }}" placeholder="Contoh: Budi Santoso" required>
                     @error('name')<div class="form-error" style="font-size:0.8rem; color:var(--danger); margin-top:4px;">{{ $message }}</div>@enderror
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-                    <div class="form-group">
-                        <label class="form-label">Username <span style="color:var(--danger);">*</span></label>
-                        <input type="text" name="username" class="form-control" value="{{ old('username') }}" placeholder="Contoh: budi123" required>
-                        @error('username')<div class="form-error" style="font-size:0.8rem; color:var(--danger); margin-top:4px;">{{ $message }}</div>@enderror
-                    </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                     <div class="form-group">
                         <label class="form-label">Email (Opsional)</label>
                         <input type="email" name="email" class="form-control" value="{{ old('email') }}" placeholder="budi@kantor.com">
                         @error('email')<div class="form-error" style="font-size:0.8rem; color:var(--danger); margin-top:4px;">{{ $message }}</div>@enderror
                     </div>
                     <div class="form-group">
-                        <label class="form-label">NIK (Opsional)</label>
+                        <label class="form-label">NIK <span style="color:var(--danger);">*</span></label>
                         <input type="text" name="nik" class="form-control" value="{{ old('nik') }}" placeholder="Nomor Induk Karyawan">
                         @error('nik')<div class="form-error" style="font-size:0.8rem; color:var(--danger); margin-top:4px;">{{ $message }}</div>@enderror
                     </div>

@@ -15,7 +15,6 @@
         <div class="card-body">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.875rem;">
                 <div><div class="text-xs text-muted">Email</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->email ?? '-' }}</div></div>
-                <div><div class="text-xs text-muted">Username</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->username ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">NIK</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->nik ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">Jabatan</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->jabatan ?? '-' }}</div></div>
                 <div><div class="text-xs text-muted">Departemen</div><div style="font-weight:600;margin-top:2px;">{{ $karyawan->department ?? '-' }}</div></div>
