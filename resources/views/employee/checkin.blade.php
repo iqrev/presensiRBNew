@@ -300,10 +300,9 @@ function attendance() {
             canvas.width  = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
-            ctx.save();
-            ctx.scale(-1, 1);
-            ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-            ctx.restore();
+            // Menghapus penggunaan ctx.scale(-1, 1) agar hasil aktual gambar/foto tidak mirrored (terbalik).
+            // Dengan begini, jika ada teks/logo akan terbaca dengan benar di hasil foto (sesuai dunia nyata).
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             this.capturedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
             canvas.toBlob((blob) => {

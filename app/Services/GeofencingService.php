@@ -32,28 +32,53 @@ class GeofencingService
      */
     public function checkLocation(float $userLat, float $userLng): array
     {
-        $location = OfficeLocation::active()->first();
+        // Ambil semua lokasi kantor yang aktif
+        $locations = OfficeLocation::active()->get();
 
-        if (!$location) {
+        if ($locations->isEmpty()) {
             return [
-                'within'        => false,
+                'within'         => false,
                 'distance_meter' => 0,
-                'radius_meter'  => 0,
-                'office_name'   => null,
-                'error'         => 'Lokasi kantor belum dikonfigurasi.',
+                'radius_meter'   => 0,
+                'office_name'    => null,
+                'error'          => 'Lokasi kantor belum dikonfigurasi.',
             ];
         }
 
-        $distance = $this->calculateDistance(
-            $userLat, $userLng,
-            $location->latitude, $location->longitude
-        );
+        $minDistance = PHP_FLOAT_MAX;
+        $closestLocation = null;
 
+        // Cek satu per satu
+        foreach ($locations as $location) {
+            $distance = $this->calculateDistance(
+                $userLat, $userLng,
+                $location->latitude, $location->longitude
+            );
+
+            // Jika user berada di dalam radius salah satu lokasi aktif, langsung rekam berhasil
+            if ($distance <= $location->radius_meter) {
+                return [
+                    'within'         => true,
+                    'distance_meter' => round($distance, 2),
+                    'radius_meter'   => $location->radius_meter,
+                    'office_name'    => $location->name,
+                    'error'          => null,
+                ];
+            }
+
+            // Simpan data lokasi yang paling dekat untuk pesan error
+            if ($distance < $minDistance) {
+                $minDistance = $distance;
+                $closestLocation = $location;
+            }
+        }
+
+        // Jika tidak masuk ke radius satupun, kembalikan jarak dari kantor terdekat
         return [
-            'within'         => $distance <= $location->radius_meter,
-            'distance_meter' => round($distance, 2),
-            'radius_meter'   => $location->radius_meter,
-            'office_name'    => $location->name,
+            'within'         => false,
+            'distance_meter' => round($minDistance, 2),
+            'radius_meter'   => $closestLocation->radius_meter,
+            'office_name'    => $closestLocation->name,
             'error'          => null,
         ];
     }
