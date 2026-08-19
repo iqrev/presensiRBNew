@@ -28,11 +28,6 @@ class OfficeLocationController extends Controller
             'radius_meter' => 'required|integer|min:10|max:5000',
         ]);
 
-        // Deactivate all others before creating new active location
-        if ($request->boolean('is_active', true)) {
-            OfficeLocation::query()->update(['is_active' => false]);
-        }
-
         OfficeLocation::create(array_merge($data, ['is_active' => true]));
 
         return redirect()->route('admin.lokasi.index')
@@ -51,13 +46,9 @@ class OfficeLocationController extends Controller
             'latitude'     => 'required|numeric|between:-90,90',
             'longitude'    => 'required|numeric|between:-180,180',
             'radius_meter' => 'required|integer|min:10|max:5000',
-            'is_active'    => 'boolean',
         ]);
 
-        // If activating this location, deactivate others
-        if ($request->boolean('is_active')) {
-            OfficeLocation::where('id', '!=', $lokasi->id)->update(['is_active' => false]);
-        }
+        $data['is_active'] = $request->boolean('is_active');
 
         $lokasi->update($data);
 
