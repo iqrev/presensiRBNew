@@ -82,6 +82,13 @@ class EmployeeController extends Controller
 
     public function destroy(User $karyawan)
     {
+        if (auth()->user()->hasRole('superadmin')) {
+            $name = $karyawan->name;
+            $karyawan->delete();
+            return redirect()->route('admin.karyawan.index')
+                ->with('success', "Data karyawan {$name} telah dihapus permanen.");
+        }
+
         $karyawan->update(['status' => 'nonaktif']);
         return redirect()->route('admin.karyawan.index')
             ->with('success', "Akun {$karyawan->name} telah dinonaktifkan.");

@@ -49,6 +49,12 @@
                                 <a href="{{ route('admin.karyawan.show', $emp) }}" class="btn btn-secondary" style="padding:5px 10px;font-size:0.75rem;">Detail</a>
                                 <a href="{{ route('admin.face.index', $emp) }}" class="btn btn-primary" style="padding:5px 10px;font-size:0.75rem;"><i class="ph ph-camera"></i> Foto</a>
                                 <a href="{{ route('admin.karyawan.edit', $emp) }}" class="btn btn-secondary" style="padding:5px 10px;font-size:0.75rem;">Edit</a>
+                                @role('superadmin')
+                                <form action="{{ route('admin.karyawan.destroy', $emp) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus permanen {{ $emp->name }}? Data kehadiran dan info terkait juga akan terhapus.');" style="margin:0;">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-danger" style="padding:5px 10px;font-size:0.75rem;border-radius:6px;border:none;background:#FEE2E2;color:#991B1B;"><i class="ph ph-trash"></i> Hapus</button>
+                                </form>
+                                @endrole
                             </div>
                         </td>
                     </tr>

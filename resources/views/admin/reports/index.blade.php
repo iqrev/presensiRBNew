@@ -9,6 +9,11 @@
     <!-- Filter -->
     <div class="card" style="margin-bottom:16px;">
         <div class="card-body">
+            <div style="margin-bottom:16px; display:flex; gap:8px; align-items:center;">
+                <span style="font-size:0.85rem; color:var(--gray-500); font-weight:500;">Pintas:</span>
+                <a href="?start={{ now()->startOfMonth()->format('Y-m-d') }}&end={{ now()->format('Y-m-d') }}&user_id={{ $userId }}" class="badge badge-gray" style="text-decoration:none; padding:6px 12px; cursor:pointer;">Bulan Ini</a>
+                <a href="?start={{ now()->subDays(6)->format('Y-m-d') }}&end={{ now()->format('Y-m-d') }}&user_id={{ $userId }}" class="badge badge-gray" style="text-decoration:none; padding:6px 12px; cursor:pointer;">7 Hari Terakhir</a>
+            </div>
             <form method="GET" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
                 <div style="flex:1;min-width:140px;">
                     <label class="form-label">Dari Tanggal</label>

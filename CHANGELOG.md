@@ -4,6 +4,8 @@ Semua perubahan yang signifikan pada aplikasi AbsensiRB akan didokumentasikan da
 
 ## [Unreleased]
 ### Added
+- Fitur shortcut filter (Bulan Ini & 7 Hari Terakhir) pada halaman Laporan Presensi.
+- Fitur hapus permanen data karyawan yang hanya dapat diakses oleh role Super Admin.
 - Fitur peringatan dan pembatasan presensi pulang (check-out) sebelum jadwal jam pulang yang ditentukan.
 - Fitur penambahan *watermark* pada hasil potret presensi (berisi Nama, Waktu, Lokasi, Tipe Presensi).
 - Panduan *walkthrough* untuk memberikan petunjuk penggunaan dan pembaruan terbaru.
