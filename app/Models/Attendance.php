@@ -69,10 +69,30 @@ class Attendance extends Model
                      ->whereYear('attendance_time', now()->year);
     }
 
+    public function getIsLateAttribute(): bool
+    {
+        if ($this->type !== 'check_in' || $this->status !== 'valid') {
+            return false;
+        }
+
+        $jamMasuk = \App\Models\SystemSetting::get('jam_masuk', '08:00');
+        $toleransi = (int) \App\Models\SystemSetting::get('toleransi_terlambat_menit', 15);
+        $batasLambat = \Carbon\Carbon::parse($this->attendance_time->format('Y-m-d') . ' ' . $jamMasuk)
+                                     ->addMinutes($toleransi);
+
+        return $this->attendance_time->gt($batasLambat);
+    }
+
     public function getStatusLabelAttribute(): string
     {
+        if ($this->status === 'valid') {
+            if ($this->type === 'check_in') {
+                return $this->is_late ? 'Terlambat' : 'Tepat Waktu';
+            }
+            return 'Valid';
+        }
+
         return match($this->status) {
-            'valid'          => 'Valid',
             'rejected'       => 'Ditolak',
             'manual_request' => 'Perlu Approval',
             default          => '-',
@@ -81,8 +101,14 @@ class Attendance extends Model
 
     public function getStatusColorAttribute(): string
     {
+        if ($this->status === 'valid') {
+            if ($this->type === 'check_in') {
+                return $this->is_late ? 'warning' : 'success';
+            }
+            return 'success';
+        }
+
         return match($this->status) {
-            'valid'          => 'success',
             'rejected'       => 'danger',
             'manual_request' => 'warning',
             default          => 'secondary',

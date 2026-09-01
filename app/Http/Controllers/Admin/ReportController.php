@@ -85,13 +85,13 @@ class ReportController extends Controller
             $query->where('user_id', $userId);
         }
 
-        return $query->get()->groupBy('user_id')->map(function ($records, $uid) use ($batasLambat) {
+        return $query->get()->groupBy('user_id')->map(function ($records, $uid) {
             $user = $records->first()->user;
             return [
                 'user'      => $user,
                 'total'     => $records->count(),
-                'tepat'     => $records->filter(fn($r) => $r->attendance_time->lte($batasLambat))->count(),
-                'terlambat' => $records->filter(fn($r) => $r->attendance_time->gt($batasLambat))->count(),
+                'tepat'     => $records->filter(fn($r) => !$r->is_late)->count(),
+                'terlambat' => $records->filter(fn($r) => $r->is_late)->count(),
             ];
         })->values()->toArray();
     }

@@ -16,13 +16,22 @@ class SystemSetting extends Model
         'description',
     ];
 
+    protected static $runtimeCache = [];
+
     /**
      * Get a setting value by key.
      */
     public static function get(string $key, mixed $default = null): mixed
     {
+        if (array_key_exists($key, self::$runtimeCache)) {
+            return self::$runtimeCache[$key];
+        }
+
         $setting = static::find($key);
-        return $setting ? $setting->value : $default;
+        $value = $setting ? $setting->value : $default;
+        self::$runtimeCache[$key] = $value;
+        
+        return $value;
     }
 
     /**
@@ -34,5 +43,6 @@ class SystemSetting extends Model
             ['key' => $key],
             ['value' => $value]
         );
+        self::$runtimeCache[$key] = $value;
     }
 }
