@@ -194,6 +194,9 @@ function attendance() {
             if (this.modelsLoaded) return true;
             this.error = "Memuat model AI Lokal (hanya sekali)...";
             try {
+                // Pastikan backend TensorFlow.js sudah siap sebelum memuat model
+                await faceapi.tf.ready();
+
                 await faceapi.nets.ssdMobilenetv1.loadFromUri('/models');
                 await faceapi.nets.faceLandmark68Net.loadFromUri('/models');
                 await faceapi.nets.faceRecognitionNet.loadFromUri('/models');
