@@ -33,6 +33,15 @@ class ReportController extends Controller
 
         $attendances = $query->paginate(30)->withQueryString();
 
+        $attendances->getCollection()->transform(function ($att) {
+            $att->check_out = Attendance::where('user_id', $att->user_id)
+                ->where('type', 'check_out')
+                ->whereDate('attendance_time', $att->attendance_time->toDateString())
+                ->valid()
+                ->first();
+            return $att;
+        });
+
         // Summary stats per user
         $summary = $this->buildSummary($userId, $startDate, $endDate, $employees);
 

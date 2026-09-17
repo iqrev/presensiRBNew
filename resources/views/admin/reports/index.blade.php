@@ -71,7 +71,7 @@
         @else
         <div class="table-wrap">
             <table class="table">
-                <thead><tr><th>Nama</th><th>Tanggal</th><th>Masuk</th><th>Jarak</th><th>Face %</th><th>Status</th></tr></thead>
+                <thead><tr><th>Nama</th><th>Tanggal</th><th>Masuk</th><th>Pulang</th><th>Jarak</th><th>Face %</th><th>Status</th></tr></thead>
                 <tbody>
                     @foreach($attendances as $att)
                     <tr>
@@ -81,6 +81,9 @@
                         </td>
                         <td>{{ $att->attendance_time->format('d M Y') }}</td>
                         <td style="font-weight:700;">{{ $att->attendance_time->format('H:i') }}</td>
+                        <td style="font-weight:700; color:var(--gray-600);">
+                            {{ $att->check_out ? $att->check_out->attendance_time->format('H:i') : '-' }}
+                        </td>
                         <td>{{ round($att->distance_meter) }} m</td>
                         <td>{{ round($att->face_match_score, 1) }}%</td>
                         <td><span class="badge badge-{{ $att->status_color }}">{{ $att->status_label }}</span></td>
