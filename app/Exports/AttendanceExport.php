@@ -2,8 +2,8 @@
 
 namespace App\Exports;
 
-use App\Models\Attendance;
-use App\Models\SystemSetting;
+use App\Models\User;
+use App\Services\AttendanceReportService;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -23,62 +23,40 @@ class AttendanceExport implements FromCollection, WithHeadings, WithStyles, Shou
 
     public function collection()
     {
-        $lateCutoff = Carbon::parse(SystemSetting::get('jam_masuk', '08:00'))
-            ->addMinutes((int) SystemSetting::get('toleransi_terlambat_menit', 15))
-            ->format('H:i:s');
+        $service = app(AttendanceReportService::class);
+        $employees = User::role('karyawan')->orderBy('name')->get();
 
-        $query = Attendance::with('user')
-            ->whereBetween('attendance_time', [$this->startDate . ' 00:00:00', $this->endDate . ' 23:59:59'])
-            ->checkIn()
-            ->valid()
-            ->when($this->userId !== 'all', fn ($query) => $query->where('user_id', $this->userId))
-            ->when($this->department !== 'all', fn ($query) => $query->whereHas(
-                'user', fn ($userQuery) => $userQuery->where('department', $this->department)
-            ))
-            ->when($this->arrival === 'on_time', fn ($query) => $query->whereTime('attendance_time', '<=', $lateCutoff))
-            ->when($this->arrival === 'late', fn ($query) => $query->whereTime('attendance_time', '>', $lateCutoff))
-            ->orderBy('attendance_time');
+        $filters = [
+            'start' => $this->startDate,
+            'end' => $this->endDate,
+            'user_id' => $this->userId,
+            'department' => $this->department,
+            'arrival' => $this->arrival,
+        ];
 
-        $checkIns = $query->get();
-        $checkouts = Attendance::query()
-            ->valid()
-            ->checkOut()
-            ->whereBetween('attendance_time', [$this->startDate . ' 00:00:00', $this->endDate . ' 23:59:59'])
-            ->whereIn('user_id', $checkIns->pluck('user_id')->unique())
-            ->orderBy('attendance_time')
-            ->get()
-            ->groupBy(fn ($row) => $row->user_id . '|' . $row->attendance_time->toDateString());
+        $timeline = $service->getDailyTimeline($filters, $employees);
 
-        return $checkIns->map(function ($attendance) use ($checkouts, $lateCutoff) {
-            $checkout = $checkouts->get($attendance->user_id . '|' . $attendance->attendance_time->toDateString())?->first();
-            $isLate = $attendance->attendance_time->format('H:i:s') > $lateCutoff;
-            $duration = '-';
-
-            if ($checkout) {
-                $minutes = max(0, (int) floor(($checkout->attendance_time->timestamp - $attendance->attendance_time->timestamp) / 60));
-                $duration = intdiv($minutes, 60) . ' jam ' . str_pad((string) ($minutes % 60), 2, '0', STR_PAD_LEFT) . ' menit';
-            }
-
+        return $timeline->map(function ($item) {
             return [
-                'Nama' => $attendance->user->name,
-                'NIK' => $attendance->user->nik ?? '-',
-                'Jabatan' => $attendance->user->jabatan ?? '-',
-                'Departemen' => $attendance->user->department ?? '-',
-                'Tanggal' => $attendance->attendance_time->format('d/m/Y'),
-                'Jam Masuk' => $attendance->attendance_time->format('H:i'),
-                'Jam Keluar' => $checkout?->attendance_time->format('H:i') ?? '-',
-                'Durasi' => $duration,
-                'Jarak (m)' => round($attendance->distance_meter),
-                'Face Score' => round($attendance->face_match_score, 1) . '%',
-                'Status Waktu' => $isLate ? 'Terlambat' : 'Tepat waktu',
-                'Status Data' => $attendance->status_label,
+                'Nama' => $item['user']->name,
+                'NIK' => $item['user']->nik ?? '-',
+                'Jabatan' => $item['user']->jabatan ?? '-',
+                'Departemen' => $item['user']->department ?? '-',
+                'Hari' => $item['day_name'],
+                'Tanggal' => Carbon::parse($item['date'])->format('d/m/Y'),
+                'Jam Masuk' => $item['check_in_time'],
+                'Jam Keluar' => $item['check_out_time'],
+                'Durasi' => $item['duration_label'],
+                'Jarak (m)' => $item['distance_meter'] !== null ? $item['distance_meter'] : '-',
+                'Face Score' => $item['face_match_score'] !== null ? $item['face_match_score'] . '%' : '-',
+                'Status Kehadiran' => $item['status_label'],
             ];
         });
     }
 
     public function headings(): array
     {
-        return ['Nama', 'NIK', 'Jabatan', 'Departemen', 'Tanggal', 'Jam Masuk', 'Jam Keluar', 'Durasi', 'Jarak (m)', 'Face Score', 'Status Waktu', 'Status Data'];
+        return ['Nama', 'NIK', 'Jabatan', 'Departemen', 'Hari', 'Tanggal', 'Jam Masuk', 'Jam Keluar', 'Durasi', 'Jarak (m)', 'Face Score', 'Status Kehadiran'];
     }
 
     public function styles(Worksheet $sheet): array

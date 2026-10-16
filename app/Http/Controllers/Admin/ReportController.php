@@ -3,46 +3,43 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Attendance;
 use App\Models\SystemSetting;
 use App\Models\User;
+use App\Services\AttendanceReportService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 
 class ReportController extends Controller
 {
+    public function __construct(
+        protected AttendanceReportService $reportService
+    ) {}
+
     public function index(Request $request)
     {
         $employees = User::role('karyawan')->orderBy('name')->get();
         $departments = $employees->pluck('department')->filter()->unique()->sort()->values();
         $filters = $this->validatedFilters($request, $employees, $departments);
-        $lateCutoff = $this->lateCutoff();
+        $lateCutoff = $this->reportService->getLateCutoff();
 
-        $baseQuery = $this->attendanceQuery($filters);
-        $totalAttendance = (clone $baseQuery)->count();
-        $lateAttendance = (clone $baseQuery)->whereTime('attendance_time', '>', $lateCutoff)->count();
-        $uniqueEmployees = (clone $baseQuery)->distinct()->count('user_id');
-        $summary = $this->buildSummary($filters, $employees, $lateCutoff);
+        // 1. Dapatkan seluruh timeline harian untuk karyawan yang dipilih (termasuk hari kosong/tidak hadir)
+        $timeline = $this->reportService->getDailyTimeline($filters, $employees);
 
-        $detailQuery = $this->applyArrivalFilter(clone $baseQuery, $filters, $lateCutoff)
-            ->with('user')
-            ->orderByDesc('attendance_time');
-        $attendances = $detailQuery->paginate(30)->withQueryString();
+        // 2. Buat ringkasan per karyawan
+        $summary = $this->reportService->buildSummary($filters, $employees, $timeline);
 
-        $pageRecords = $attendances->getCollection();
-        $checkoutMap = collect();
-        if ($pageRecords->isNotEmpty()) {
-            $checkoutMap = Attendance::query()
-                ->valid()
-                ->checkOut()
-                ->whereBetween('attendance_time', [$filters['start'] . ' 00:00:00', $filters['end'] . ' 23:59:59'])
-                ->whereIn('user_id', $pageRecords->pluck('user_id')->unique())
-                ->get()
-                ->keyBy(fn ($row) => $row->user_id . '|' . $row->attendance_time->toDateString());
-        }
+        // 3. Hitung metrik KPI
+        $presentRows = $timeline->filter(fn ($item) => in_array($item['status_code'], ['on_time', 'late']));
+        $totalAttendance = $presentRows->count();
+        $lateAttendance = $timeline->where('status_code', 'late')->count();
+        $onTimeAttendance = $timeline->where('status_code', 'on_time')->count();
+        $absentAttendance = $timeline->where('status_code', 'absent')->count();
+        $uniqueEmployees = $presentRows->pluck('user.id')->unique()->count();
+
+        // 4. Paginasi timeline untuk tampilan tabel
+        $attendances = $this->reportService->paginateTimeline($timeline, 30);
 
         return view('admin.reports.index', [
             'attendances' => $attendances,
@@ -53,9 +50,9 @@ class ReportController extends Controller
             'summary' => $summary,
             'totalAttendance' => $totalAttendance,
             'lateAttendance' => $lateAttendance,
-            'onTimeAttendance' => $totalAttendance - $lateAttendance,
+            'onTimeAttendance' => $onTimeAttendance,
+            'absentAttendance' => $absentAttendance,
             'uniqueEmployees' => $uniqueEmployees,
-            'checkoutMap' => $checkoutMap,
         ]);
     }
 
@@ -78,12 +75,15 @@ class ReportController extends Controller
         $employees = User::role('karyawan')->orderBy('name')->get();
         $departments = $employees->pluck('department')->filter()->unique()->sort()->values();
         $filters = $this->validatedFilters($request, $employees, $departments);
-        $lateCutoff = $this->lateCutoff();
-        $summary = $this->buildSummary($filters, $employees, $lateCutoff);
+        $lateCutoff = $this->reportService->getLateCutoff();
+
+        $timeline = $this->reportService->getDailyTimeline($filters, $employees);
+        $summary = $this->reportService->buildSummary($filters, $employees, $timeline);
+
         $namaKantor = SystemSetting::get('nama_kantor', 'Kantor');
         $filterLabel = $this->filterLabel($filters, $employees);
 
-        $pdf = Pdf::loadView('reports.pdf', compact('summary', 'filters', 'namaKantor', 'filterLabel', 'lateCutoff'))
+        $pdf = Pdf::loadView('reports.pdf', compact('summary', 'timeline', 'filters', 'namaKantor', 'filterLabel', 'lateCutoff'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->download("laporan-presensi-{$filters['start']}-{$filters['end']}.pdf");
@@ -109,64 +109,8 @@ class ReportController extends Controller
             'end' => ['required', 'date_format:Y-m-d', 'after_or_equal:start'],
             'user_id' => ['required', Rule::in(array_merge(['all'], $employees->pluck('id')->map(fn ($id) => (string) $id)->all()))],
             'department' => ['required', Rule::in(array_merge(['all'], $departments->map(fn ($value) => (string) $value)->all()))],
-            'arrival' => ['required', Rule::in(['all', 'on_time', 'late'])],
+            'arrival' => ['required', Rule::in(['all', 'on_time', 'late', 'absent', 'leave'])],
         ]);
-    }
-
-    private function attendanceQuery(array $filters)
-    {
-        return Attendance::query()
-            ->whereBetween('attendance_time', [$filters['start'] . ' 00:00:00', $filters['end'] . ' 23:59:59'])
-            ->checkIn()
-            ->valid()
-            ->when($filters['user_id'] !== 'all', fn ($query) => $query->where('user_id', $filters['user_id']))
-            ->when($filters['department'] !== 'all', fn ($query) => $query->whereHas(
-                'user', fn ($userQuery) => $userQuery->where('department', $filters['department'])
-            ));
-    }
-
-    private function applyArrivalFilter($query, array $filters, string $lateCutoff)
-    {
-        return match ($filters['arrival']) {
-            'on_time' => $query->whereTime('attendance_time', '<=', $lateCutoff),
-            'late' => $query->whereTime('attendance_time', '>', $lateCutoff),
-            default => $query,
-        };
-    }
-
-    private function buildSummary(array $filters, $employees, string $lateCutoff): array
-    {
-        $employees = $employees
-            ->when($filters['user_id'] !== 'all', fn ($rows) => $rows->where('id', (int) $filters['user_id']))
-            ->when($filters['department'] !== 'all', fn ($rows) => $rows->where('department', $filters['department']))
-            ->values();
-
-        $recordsByUser = $this->applyArrivalFilter(
-            $this->attendanceQuery($filters), $filters, $lateCutoff
-        )
-            ->selectRaw('user_id, COUNT(*) as total, SUM(CASE WHEN TIME(attendance_time) <= ? THEN 1 ELSE 0 END) as tepat', [$lateCutoff])
-            ->groupBy('user_id')
-            ->get()
-            ->keyBy('user_id');
-
-        return $employees->map(function ($user) use ($recordsByUser) {
-            $records = $recordsByUser->get($user->id);
-            $total = (int) ($records->total ?? 0);
-            $onTime = (int) ($records->tepat ?? 0);
-            return [
-                'user' => $user,
-                'total' => $total,
-                'tepat' => $onTime,
-                'terlambat' => $total - $onTime,
-            ];
-        })->all();
-    }
-
-    private function lateCutoff(): string
-    {
-        $startTime = SystemSetting::get('jam_masuk', '08:00');
-        $tolerance = (int) SystemSetting::get('toleransi_terlambat_menit', 15);
-        return Carbon::parse($startTime)->addMinutes($tolerance)->format('H:i:s');
     }
 
     private function filterLabel(array $filters, $employees): string
@@ -178,7 +122,9 @@ class ReportController extends Controller
         $arrival = match ($filters['arrival']) {
             'on_time' => 'Tepat waktu',
             'late' => 'Terlambat',
-            default => 'Semua status waktu',
+            'absent' => 'Tidak hadir',
+            'leave' => 'Izin / Sakit / Cuti',
+            default => 'Semua status',
         };
         return implode(' · ', [$employeeName, $department, $arrival]);
     }
