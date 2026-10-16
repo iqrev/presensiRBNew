@@ -2,13 +2,26 @@
 @section('title', 'Mesin Presensi')
 
 @section('content')
-<div class="page-container" x-data="attendance()" style="max-width:600px; margin:0 auto; padding: 12px 16px; display: flex; flex-direction: column; height: calc(100dvh - 65px);">
+<style>
+    .attendance-shell { max-width: 560px !important; padding: 18px 16px !important; gap: 14px; }
+    .attendance-shell .page-header { padding: 8px 0 4px !important; }
+    .attendance-shell .page-title { font-size: 1.35rem !important; font-weight: 750; letter-spacing: -.03em; }
+    .attendance-shell .page-subtitle { color: var(--gray-500); }
+    .attendance-shell .attendance-clock { font-size: 2.5rem !important; color: var(--gray-900) !important; margin-top: 10px !important; }
+    .attendance-shell .attendance-card { border: 0 !important; border-radius: 24px !important; box-shadow: 0 16px 45px rgba(15,23,42,.09); }
+    .attendance-shell .attendance-tabs { background: #f1f5f9 !important; border: 0 !important; border-radius: 20px 20px 0 0; }
+    .attendance-shell .attendance-tabs .btn { border-radius: 14px; font-weight: 700; }
+    .attendance-shell .attendance-action { border-radius: 16px; box-shadow: 0 8px 20px rgba(37,99,235,.2); }
+    .attendance-shell .camera-frame { min-height: 260px; border-radius: 22px !important; }
+    @media (max-height: 760px) { .attendance-shell { height: auto !important; min-height: calc(100dvh - 65px); } .attendance-shell .camera-frame { min-height: 210px; } .attendance-shell .attendance-clock { font-size: 2rem !important; } }
+</style>
+<div class="page-container attendance-shell" x-data="attendance()" style="max-width:600px; margin:0 auto; padding: 12px 16px; display: flex; flex-direction: column; height: calc(100dvh - 65px);">
     <div class="page-header" style="text-align:center; padding: 0 0 12px; flex-shrink: 0;">
         <div class="page-title" style="font-size:1.5rem; justify-content:center;">
             <i class="ph ph-camera" style="color:var(--primary);"></i> Mesin Presensi
         </div>
         <div class="page-subtitle" style="font-size:0.9rem; margin-top:2px;">{{ now()->translatedFormat('l, d F Y') }}</div>
-        <div style="font-size:3rem; font-weight:800; color:var(--primary); margin-top:4px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1;" x-text="currentTime"></div>
+        <div class="attendance-clock" style="font-size:3rem; font-weight:800; color:var(--primary); margin-top:4px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; line-height: 1;" x-text="currentTime"></div>
     </div>
 
     <!-- Result Display -->
@@ -32,8 +45,8 @@
 
     <!-- Camera Section -->
     <template x-if="!result">
-    <div class="card" style="margin-bottom:0; flex: 1; display: flex; flex-direction: column; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); overflow: hidden;">
-        <div class="card-header" style="display:flex; justify-content:center; gap:12px; padding:12px 16px; background: var(--gray-50); border-bottom: 1px solid var(--gray-100); flex-shrink: 0;">
+    <div class="card attendance-card" style="margin-bottom:0; flex: 1; display: flex; flex-direction: column; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); overflow: hidden;">
+        <div class="card-header attendance-tabs" style="display:flex; justify-content:center; gap:12px; padding:12px 16px; background: var(--gray-50); border-bottom: 1px solid var(--gray-100); flex-shrink: 0;">
             <button @click="activeType='check_in'; error=null;" :class="activeType==='check_in' ? 'btn btn-primary' : 'btn btn-secondary'" style="flex:1; font-size:1rem; padding: 10px;">
                 <i class="ph ph-sign-in"></i> Masuk
             </button>
@@ -54,7 +67,7 @@
                 <p style="color:var(--gray-500); font-size:0.9rem; margin-bottom:24px; line-height: 1.5; padding: 0 12px;">
                     Sistem akan mendeteksi wajah secara otomatis. Pastikan Anda berada di lokasi kantor dan pencahayaan cukup.
                 </p>
-                <button @click="start()" class="btn btn-primary btn-full btn-lg" style="font-size:1.05rem; padding:14px; flex-shrink: 0;">
+                <button @click="start()" class="btn btn-primary btn-full btn-lg attendance-action" style="font-size:1.05rem; padding:14px; flex-shrink: 0;">
                     <i class="ph ph-camera"></i> Mulai Kamera
                 </button>
                 <template x-if="error">
@@ -69,7 +82,7 @@
             <!-- Step: Camera Live -->
             <template x-if="step === 'camera'">
             <div style="text-align:center; display: flex; flex-direction: column; height: 100%;">
-                <div style="position:relative; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:16px; background:#000; flex: 1; box-shadow:0 4px 20px rgba(0,0,0,0.1);">
+                <div class="camera-frame" style="position:relative; border-radius:var(--radius-lg); overflow:hidden; margin-bottom:16px; background:#000; flex: 1; box-shadow:0 4px 20px rgba(0,0,0,0.1);">
                     <video x-ref="video" autoplay playsinline muted style="position: absolute; top: 0; left: 0; width:100%; height:100%; object-fit:cover; transform:scaleX(-1);" id="camera-video"></video>
 
                     <!-- Face guide overlay -->
@@ -220,7 +233,7 @@ function attendance() {
 
                 // Request camera
                 this.stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 854 } },
+                    video: { facingMode: 'user', width: { ideal: 640, max: 1280 }, height: { ideal: 854, max: 1280 }, frameRate: { ideal: 24, max: 30 } },
                     audio: false
                 });
 
@@ -300,17 +313,21 @@ function attendance() {
             const canvas = document.getElementById('capture-canvas');
             if (!video || !canvas) return;
 
-            canvas.width  = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
+            // Bound pixel work on mobile while retaining enough detail for matching.
+            const sourceWidth = video.videoWidth || 640;
+            const sourceHeight = video.videoHeight || 854;
+            const scale = Math.min(1, 640 / sourceWidth, 854 / sourceHeight);
+            canvas.width = Math.round(sourceWidth * scale);
+            canvas.height = Math.round(sourceHeight * scale);
+            const ctx = canvas.getContext('2d', { alpha: false });
             // Menghapus penggunaan ctx.scale(-1, 1) agar hasil aktual gambar/foto tidak mirrored (terbalik).
             // Dengan begini, jika ada teks/logo akan terbaca dengan benar di hasil foto (sesuai dunia nyata).
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            this.capturedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+            this.capturedDataUrl = canvas.toDataURL('image/jpeg', 0.78);
             canvas.toBlob((blob) => {
                 this.capturedBlob = blob;
-            }, 'image/jpeg', 0.85);
+            }, 'image/jpeg', 0.78);
 
             this.stopCamera();
             this.step = 'preview';
@@ -318,7 +335,7 @@ function attendance() {
 
             try {
                 // Detect face descriptor from canvas
-                const detection = await faceapi.detectSingleFace(canvas).withFaceLandmarks().withFaceDescriptor();
+                const detection = await faceapi.detectSingleFace(canvas, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5, maxResults: 1 })).withFaceLandmarks().withFaceDescriptor();
                 if (!detection) {
                     alert('Wajah tidak terdeteksi. Pastikan wajah terlihat jelas dan pencahayaan cukup.');
                     this.retake();

@@ -26,16 +26,33 @@
     <p>{{ $namaKantor }}</p>
 </div>
 <div class="period">
-    Periode: {{ \Carbon\Carbon::parse($startDate)->translatedFormat('d F Y') }} — {{ \Carbon\Carbon::parse($endDate)->translatedFormat('d F Y') }}
+    Periode: {{ \Carbon\Carbon::parse($filters['start'])->translatedFormat('d F Y') }} — {{ \Carbon\Carbon::parse($filters['end'])->translatedFormat('d F Y') }}
+    · Filter: {{ $filterLabel }} · Batas terlambat: {{ substr($lateCutoff, 0, 5) }}
     · Dibuat: {{ now()->translatedFormat('d F Y H:i') }}
 </div>
+
+@php
+    $totalHadir = collect($summary)->sum('total');
+    $totalTepat = collect($summary)->sum('tepat');
+    $totalTerlambat = collect($summary)->sum('terlambat');
+@endphp
+<table style="margin-bottom:14px;">
+    <tbody>
+        <tr>
+            <td style="background:#EEF2FF;font-weight:700;">Total presensi masuk: {{ $totalHadir }}</td>
+            <td style="background:#D1FAE5;font-weight:700;">Tepat waktu: {{ $totalTepat }}</td>
+            <td style="background:#FEF3C7;font-weight:700;">Terlambat: {{ $totalTerlambat }}</td>
+            <td style="background:#F3F4F6;font-weight:700;">Karyawan dalam filter: {{ count($summary) }}</td>
+        </tr>
+    </tbody>
+</table>
 
 @if(!empty($summary))
 <table>
     <thead>
         <tr>
             <th>Nama Karyawan</th>
-            <th>Jabatan</th>
+            <th>Departemen</th>
             <th>Total Hadir</th>
             <th>Tepat Waktu</th>
             <th>Terlambat</th>
@@ -45,7 +62,7 @@
         @foreach($summary as $row)
         <tr>
             <td style="font-weight:700;">{{ $row['user']->name }}</td>
-            <td style="color:#6B7280;">{{ $row['user']->jabatan ?? '-' }}</td>
+            <td style="color:#6B7280;">{{ $row['user']->department ?? '-' }}</td>
             <td style="font-weight:700;text-align:center;">{{ $row['total'] }}</td>
             <td style="text-align:center;"><span class="badge badge-success">{{ $row['tepat'] }}</span></td>
             <td style="text-align:center;"><span class="badge badge-warning">{{ $row['terlambat'] }}</span></td>

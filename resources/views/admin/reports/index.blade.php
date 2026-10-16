@@ -1,98 +1,156 @@
 @extends('layouts.app')
 @section('title', 'Laporan Presensi')
 @section('content')
-<div class="page-container" style="max-width:900px;">
-    <div style="padding-top:16px;margin-bottom:20px;">
-        <div class="page-title">📑 Laporan Presensi</div>
+<style>
+    .report-page { max-width:1180px; }
+    .report-header { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; padding-top:16px; margin-bottom:18px; }
+    .report-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .report-actions .btn { border-radius:12px; }
+    .report-presets { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 12px; }
+    .report-presets a { font-size:.78rem; padding:6px 11px; border-radius:999px; background:#f1f5f9; color:#475569; text-decoration:none; }
+    .report-filters { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); align-items:end; gap:12px; }
+    .report-filters .form-group { min-width:0; margin:0; }
+    .report-filters .employee-field, .report-filters .department-field, .report-filters .arrival-field { grid-column:span 2; }
+    .report-filters .filter-buttons { grid-column:1/-1; display:flex; justify-content:flex-end; gap:8px; }
+    .report-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:16px 0; }
+    .report-kpi { padding:16px 18px; border:1px solid var(--gray-100); border-radius:16px; background:linear-gradient(145deg,#fff,#f8fafc); }
+    .report-kpi strong { display:block; font-size:1.5rem; color:var(--gray-900); }
+    .report-kpi span { color:var(--gray-500); font-size:.8rem; }
+    .report-card { overflow:hidden; margin-bottom:16px; }
+    .report-card-title { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+    .report-table { min-width:850px; }
+    .report-table .subtle { color:var(--gray-400); font-size:.75rem; }
+    @media(max-width:920px) { .report-filters { grid-template-columns:repeat(2,minmax(0,1fr)); } .report-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:620px) { .report-filters { grid-template-columns:repeat(2,minmax(0,1fr)); } .report-filters .filter-buttons { justify-content:stretch; } .report-filters .filter-buttons .btn { flex:1; justify-content:center; } .report-header { align-items:flex-start; } }
+</style>
+<div class="page-container report-page">
+    <div class="report-header">
+        <div>
+            <div class="page-title"><i class="ph ph-chart-bar" style="color:var(--primary);"></i> Laporan Presensi</div>
+            <div class="page-subtitle">Pantau kehadiran, ketepatan waktu, dan durasi kerja per periode.</div>
+        </div>
+        <div class="report-actions">
+            <a href="{{ route('admin.reports.excel', $filters) }}" class="btn btn-success"><i class="ph ph-file-xls"></i> Ekspor Excel</a>
+            <a href="{{ route('admin.reports.pdf', $filters) }}" class="btn btn-danger"><i class="ph ph-file-pdf"></i> Ringkasan PDF</a>
+        </div>
     </div>
 
-    <!-- Filter -->
-    <div class="card" style="margin-bottom:16px;">
-        <div class="card-body">
-            <div style="margin-bottom:16px; display:flex; gap:8px; align-items:center;">
-                <span style="font-size:0.85rem; color:var(--gray-500); font-weight:500;">Pintas:</span>
-                <a href="?start={{ now()->startOfMonth()->format('Y-m-d') }}&end={{ now()->format('Y-m-d') }}&user_id={{ $userId }}" class="badge badge-gray" style="text-decoration:none; padding:6px 12px; cursor:pointer;">Bulan Ini</a>
-                <a href="?start={{ now()->subDays(6)->format('Y-m-d') }}&end={{ now()->format('Y-m-d') }}&user_id={{ $userId }}" class="badge badge-gray" style="text-decoration:none; padding:6px 12px; cursor:pointer;">7 Hari Terakhir</a>
+    <div class="report-presets">
+        <a href="{{ route('admin.reports.index', array_merge($filters, ['start' => today()->toDateString(), 'end' => today()->toDateString()])) }}">Hari ini</a>
+        <a href="{{ route('admin.reports.index', array_merge($filters, ['start' => today()->subDays(6)->toDateString(), 'end' => today()->toDateString()])) }}">7 hari terakhir</a>
+        <a href="{{ route('admin.reports.index', array_merge($filters, ['start' => now()->startOfMonth()->toDateString(), 'end' => today()->toDateString()])) }}">Bulan ini</a>
+    </div>
+
+    <div class="card" style="padding:16px;margin-bottom:16px;">
+        <form method="GET" action="{{ route('admin.reports.index') }}" class="report-filters">
+            <div class="form-group date-field">
+                <label class="form-label" for="report-start">Dari tanggal</label>
+                <input id="report-start" type="date" name="start" class="form-control" value="{{ $filters['start'] }}" required>
             </div>
-            <form method="GET" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;">
-                <div style="flex:1;min-width:140px;">
-                    <label class="form-label">Dari Tanggal</label>
-                    <input type="date" name="start" class="form-control" value="{{ $startDate }}">
-                </div>
-                <div style="flex:1;min-width:140px;">
-                    <label class="form-label">Sampai Tanggal</label>
-                    <input type="date" name="end" class="form-control" value="{{ $endDate }}">
-                </div>
-                <div style="flex:1;min-width:160px;">
-                    <label class="form-label">Karyawan</label>
-                    <select name="user_id" class="form-control">
-                        <option value="all">Semua Karyawan</option>
-                        @foreach($employees as $emp)
-                            <option value="{{ $emp->id }}" {{ $userId == $emp->id ? 'selected' : '' }}>{{ $emp->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div style="display:flex;gap:8px;">
-                    <button type="submit" class="btn btn-primary">🔍 Tampilkan</button>
-                    <a href="{{ route('admin.reports.excel', ['start' => $startDate, 'end' => $endDate, 'user_id' => $userId]) }}" class="btn btn-success">📊 Excel</a>
-                    <a href="{{ route('admin.reports.pdf', ['start' => $startDate, 'end' => $endDate, 'user_id' => $userId]) }}" class="btn btn-danger">📄 PDF</a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Summary -->
-    @if(!empty($summary))
-    <div class="card" style="margin-bottom:16px;">
-        <div class="card-header">📊 Ringkasan per Karyawan</div>
-        <div class="table-wrap">
-            <table class="table">
-                <thead><tr><th>Karyawan</th><th>Total Hadir</th><th>Tepat Waktu</th><th>Terlambat</th></tr></thead>
-                <tbody>
-                    @foreach($summary as $row)
-                    <tr>
-                        <td style="font-weight:600;">{{ $row['user']->name }}</td>
-                        <td>{{ $row['total'] }} hari</td>
-                        <td><span class="badge badge-success">{{ $row['tepat'] }}</span></td>
-                        <td><span class="badge badge-warning">{{ $row['terlambat'] }}</span></td>
-                    </tr>
+            <div class="form-group date-field">
+                <label class="form-label" for="report-end">Sampai tanggal</label>
+                <input id="report-end" type="date" name="end" class="form-control" value="{{ $filters['end'] }}" required>
+            </div>
+            <div class="form-group employee-field">
+                <label class="form-label" for="report-employee">Karyawan</label>
+                <select id="report-employee" name="user_id" class="form-control">
+                    <option value="all">Semua karyawan</option>
+                    @foreach($employees as $employee)
+                        <option value="{{ $employee->id }}" @selected($filters['user_id'] == $employee->id)>{{ $employee->name }}{{ $employee->status === 'nonaktif' ? ' (Nonaktif)' : '' }}</option>
                     @endforeach
-                </tbody>
-            </table>
-        </div>
+                </select>
+            </div>
+            <div class="form-group department-field">
+                <label class="form-label" for="report-department">Departemen</label>
+                <select id="report-department" name="department" class="form-control">
+                    <option value="all">Semua departemen</option>
+                    @foreach($departments as $department)
+                        <option value="{{ $department }}" @selected($filters['department'] === $department)>{{ $department }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-group arrival-field">
+                <label class="form-label" for="report-arrival">Ketepatan waktu</label>
+                <select id="report-arrival" name="arrival" class="form-control">
+                    <option value="all" @selected($filters['arrival'] === 'all')>Semua</option>
+                    <option value="on_time" @selected($filters['arrival'] === 'on_time')>Tepat waktu</option>
+                    <option value="late" @selected($filters['arrival'] === 'late')>Terlambat</option>
+                </select>
+            </div>
+            <div class="filter-buttons">
+                <a href="{{ route('admin.reports.index') }}" class="btn btn-secondary"><i class="ph ph-arrow-counter-clockwise"></i> Reset</a>
+                <button type="submit" class="btn btn-primary"><i class="ph ph-magnifying-glass"></i> Terapkan Filter</button>
+            </div>
+        </form>
+        @if($errors->any())
+            <div class="alert alert-danger" style="margin:12px 0 0;">{{ $errors->first() }}</div>
+        @endif
     </div>
-    @endif
 
-    <!-- Detail Table -->
-    <div class="card">
-        <div class="card-header"><i class="ph ph-list-dashes"></i> Detail Presensi</div>
-        @if($attendances->isEmpty())
-            <div class="card-body" style="text-align:center;color:var(--gray-400);padding:32px;">Tidak ada data untuk filter ini.</div>
+    <div class="report-kpis">
+        <div class="report-kpi"><strong>{{ number_format($totalAttendance) }}</strong><span>Presensi masuk valid</span></div>
+        <div class="report-kpi"><strong>{{ number_format($uniqueEmployees) }}</strong><span>Karyawan hadir</span></div>
+        <div class="report-kpi"><strong>{{ number_format($onTimeAttendance) }}</strong><span>Tepat waktu · batas {{ substr($lateCutoff, 0, 5) }}</span></div>
+        <div class="report-kpi"><strong>{{ number_format($lateAttendance) }}</strong><span>Terlambat</span></div>
+    </div>
+
+    <div class="card report-card">
+        <div class="card-header report-card-title"><span><i class="ph ph-users-three"></i> Ringkasan per Karyawan</span><span style="font-size:.78rem;color:var(--gray-500);">{{ $filters['start'] }} – {{ $filters['end'] }}</span></div>
+        @if(empty($summary))
+            <div class="card-body" style="text-align:center;color:var(--gray-500);">Belum ada data karyawan untuk filter ini.</div>
         @else
-        <div class="table-wrap">
-            <table class="table">
-                <thead><tr><th>Nama</th><th>Tanggal</th><th>Masuk</th><th>Pulang</th><th>Jarak</th><th>Face %</th><th>Status</th></tr></thead>
-                <tbody>
-                    @foreach($attendances as $att)
-                    <tr>
-                        <td>
-                            <div style="font-weight:600;">{{ $att->user->name }}</div>
-                            <div style="font-size:0.72rem;color:var(--gray-400);">{{ $att->user->jabatan ?? '-' }}</div>
-                        </td>
-                        <td>{{ $att->attendance_time->format('d M Y') }}</td>
-                        <td style="font-weight:700;">{{ $att->attendance_time->format('H:i') }}</td>
-                        <td style="font-weight:700; color:var(--gray-600);">
-                            {{ $att->check_out ? $att->check_out->attendance_time->format('H:i') : '-' }}
-                        </td>
-                        <td>{{ round($att->distance_meter) }} m</td>
-                        <td>{{ round($att->face_match_score, 1) }}%</td>
-                        <td><span class="badge badge-{{ $att->status_color }}">{{ $att->status_label }}</span></td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div style="padding:12px 20px;">{{ $attendances->links() }}</div>
+            <div class="table-wrap">
+                <table class="table">
+                    <thead><tr><th>Karyawan</th><th>Departemen</th><th>Hari Hadir</th><th>Tepat Waktu</th><th>Terlambat</th></tr></thead>
+                    <tbody>
+                        @foreach($summary as $row)
+                        <tr>
+                            <td><div style="font-weight:600;">{{ $row['user']->name }}</div><div class="subtle">{{ $row['user']->nik ?? '-' }} · {{ $row['user']->status === 'aktif' ? 'Aktif' : 'Nonaktif' }}</div></td>
+                            <td>{{ $row['user']->department ?? '-' }}</td>
+                            <td>{{ $row['total'] }}</td>
+                            <td><span class="badge badge-success">{{ $row['tepat'] }}</span></td>
+                            <td><span class="badge badge-warning">{{ $row['terlambat'] }}</span></td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
+
+    <div class="card report-card">
+        <div class="card-header report-card-title"><span><i class="ph ph-list-dashes"></i> Detail Presensi Masuk</span><span style="font-size:.78rem;color:var(--gray-500);">{{ $attendances->total() }} catatan</span></div>
+        @if($attendances->isEmpty())
+            <div class="card-body" style="text-align:center;color:var(--gray-500);padding:36px;">Tidak ada data untuk kombinasi filter ini.</div>
+        @else
+            <div class="table-wrap">
+                <table class="table report-table">
+                    <thead><tr><th>Karyawan</th><th>Tanggal</th><th>Masuk</th><th>Pulang</th><th>Durasi</th><th>Jarak</th><th>Face</th><th>Ketepatan</th></tr></thead>
+                    <tbody>
+                        @foreach($attendances as $att)
+                            @php
+                                $checkout = $checkoutMap->get($att->user_id . '|' . $att->attendance_time->toDateString());
+                                $isLate = $att->attendance_time->format('H:i:s') > $lateCutoff;
+                                $durationMinutes = $checkout ? max(0, (int) floor(($checkout->attendance_time->timestamp - $att->attendance_time->timestamp) / 60)) : null;
+                            @endphp
+                            <tr>
+                                <td><div style="font-weight:600;">{{ $att->user->name }}</div><div class="subtle">{{ $att->user->jabatan ?? '-' }}</div></td>
+                                <td>{{ $att->attendance_time->translatedFormat('d M Y') }}</td>
+                                <td style="font-weight:700;">{{ $att->attendance_time->format('H:i') }}</td>
+                                <td>{{ $checkout?->attendance_time->format('H:i') ?? '-' }}</td>
+                                <td>{{ $durationMinutes === null ? '-' : intdiv($durationMinutes, 60) . 'j ' . str_pad((string) ($durationMinutes % 60), 2, '0', STR_PAD_LEFT) . 'm' }}</td>
+                                <td>{{ round($att->distance_meter) }} m</td>
+                                <td>{{ $att->face_match_score === null ? '-' : round($att->face_match_score, 1) . '%' }}</td>
+                                <td><span class="badge badge-{{ $isLate ? 'warning' : 'success' }}">{{ $isLate ? 'Terlambat' : 'Tepat waktu' }}</span></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 18px;">
+                <span style="font-size:.82rem;color:var(--gray-500);">Menampilkan {{ $attendances->firstItem() }}-{{ $attendances->lastItem() }} dari {{ $attendances->total() }} catatan</span>
+                {{ $attendances->links() }}
+            </div>
         @endif
     </div>
 </div>

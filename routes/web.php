@@ -63,6 +63,7 @@ Route::middleware(['auth', 'employee.status', 'role:admin|superadmin'])->prefix(
     Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
 
     // Employees
+    Route::get('/karyawan/export', [EmployeeController::class, 'export'])->name('karyawan.export');
     Route::resource('karyawan', EmployeeController::class);
     Route::get('/karyawan/{employee}/foto-wajah', [FaceReferenceController::class, 'index'])->name('face.index');
     Route::post('/karyawan/{employee}/foto-wajah', [FaceReferenceController::class, 'store'])->name('face.store');
